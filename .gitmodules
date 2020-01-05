@@ -1,0 +1,6 @@
+[submodule "Unity/NetCodeJamCodeClient/Assets/Script/Netcode.IO.NET"]
+	path = Unity/NetCodeJamCodeClient/Assets/Script/Netcode.IO.NET
+	url = https://github.com/KillaMaaki/Netcode.IO.NET
+[submodule "Unity/NetCodeJamCodeClient/Assets/Script/ReliableNetcode.NET"]
+	path = Unity/NetCodeJamCodeClient/Assets/Script/ReliableNetcode.NET
+	url = https://github.com/KillaMaaki/ReliableNetcode.NET
