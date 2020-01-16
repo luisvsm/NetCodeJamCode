@@ -61,7 +61,7 @@ public class GamePiece
         return blockCache;
     }
 
-    public void Rotate(int[,] board)
+    public void Rotate(PlayerBoard board)
     {
         int rollbackRotation = rotation;
         rotation = (rotation + 1) % OffsetData.Length;
@@ -76,7 +76,7 @@ public class GamePiece
                 blockCache[i][1] >= height ||
                 (
                     blockCache[i][1] >= 0 &&
-                    board[blockCache[i][0], blockCache[i][1]] != 0
+                    board.GetBlock(blockCache[i][0], blockCache[i][1]) > 0
                 )
             )
             {
@@ -99,7 +99,7 @@ public class GamePiece
         clearBlockCache();
     }
 
-    public void MoveLeft(int[,] board)
+    public void MoveLeft(PlayerBoard board)
     {
         positionX = positionX + 1;
         clearBlockCache();
@@ -107,7 +107,7 @@ public class GamePiece
 
         for (int i = 0; i < blockCache.Length; i++)
         {
-            if (blockCache[i][0] >= width || board[blockCache[i][0], blockCache[i][1]] != 0)
+            if (blockCache[i][0] >= width || board.GetBlock(blockCache[i][0], blockCache[i][1]) > 0)
             {
                 clearBlockCache();
                 positionX = positionX - 1;
@@ -115,7 +115,7 @@ public class GamePiece
             }
         }
     }
-    public void MoveRight(int[,] board)
+    public void MoveRight(PlayerBoard board)
     {
         positionX = positionX - 1;
         clearBlockCache();
@@ -123,7 +123,7 @@ public class GamePiece
 
         for (int i = 0; i < blockCache.Length; i++)
         {
-            if (blockCache[i][0] < 0 || board[blockCache[i][0], blockCache[i][1]] != 0)
+            if (blockCache[i][0] < 0 || board.GetBlock(blockCache[i][0], blockCache[i][1]) > 0)
             {
                 clearBlockCache();
                 positionX = positionX + 1;
@@ -162,36 +162,36 @@ public class GamePiece
                    new int[] { 1, 0 }
                 }
             };
-        }/*
+        }
         else if (type == Type.T)
         {
-            return new int[][,] {
-                new int[,] {
-                    { -1, 0 },
-                    { 0, 0 },
-                    { 1, 0 },
-                    { 0, 1 }
+            return new int[][][] {
+                new int[][] {
+                    new int[] { -1, 0 },
+                    new int[] { 0, 0 },
+                    new int[] { 1, 0 },
+                    new int[] { 0, 1 }
                 },
-                new int[,] {
-                    { 0, -1 },
-                    { 0, 0 },
-                    { 1, 0 },
-                    { 0, 1 }
+                new int[][] {
+                    new int[] { 0, -1 },
+                    new int[] { 0, 0 },
+                    new int[] { 1, 0 },
+                    new int[] { 0, 1 }
                 },
-                new int[,] {
-                    { -1, 0 },
-                    { 0, 0 },
-                    { 1, 0 },
-                    { 0, -1 }
+                new int[][] {
+                    new int[] { -1, 0 },
+                    new int[] { 0, 0 },
+                    new int[] { 1, 0 },
+                    new int[] { 0, -1 }
                 },
-                new int[,] {
-                    { 0, -1 },
-                    { 0, 0 },
-                    { -1, 0 },
-                    { 0, 1 }
+                new int[][] {
+                    new int[] { 0, -1 },
+                    new int[] { 0, 0 },
+                    new int[] { -1, 0 },
+                    new int[] { 0, 1 }
                 }
             };
-        }
+        }/*
         else if (type == Type.S)
         {
             return new int[][,] {
