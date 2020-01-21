@@ -150,8 +150,40 @@ public class PlayerBoard
             piecesToAddToBoard.Clear();
             PlacePiece();
         }
-    }
 
+        bool clearLine;
+
+        for (int j = 0; j < boardHeight; j++)
+        {
+            clearLine = true;
+
+            for (int i = 0; i < boardWidth; i++)
+            {
+
+                if (board[i, j] < 1)
+                {
+                    clearLine = false;
+                    break;
+                }
+
+            }
+
+            if (clearLine)
+            {
+                ClearLine(j);
+            }
+        }
+    }
+    private void ClearLine(int line)
+    {
+        for (int i = 0; i < boardWidth; i++)
+        {
+            for (int j = line; j > 0; j--)
+            {
+                board[i, j] = board[i, j - 1];
+            }
+        }
+    }
     private void AddToBoard(GamePiece piece)
     {
         blockCache = piece.GetBlocks();
