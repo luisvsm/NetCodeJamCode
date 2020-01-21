@@ -16,7 +16,7 @@ public class PlayerBoard
     {
         System.Random random = new System.Random();
 
-        pieces.Add(new GamePiece((GamePiece.Type)random.Next(1, 4), boardWidth, boardHeight));
+        pieces.Add(new GamePiece((GamePiece.Type)random.Next(1, 8), boardWidth, boardHeight));
     }
 
     public PlayerBoard(int width, int height)
@@ -36,6 +36,17 @@ public class PlayerBoard
         }
     }
 
+    public void SetBlock(GamePiece.Type type, int x, int y)
+    {
+        if (OutOfBounds(x, y))
+        {
+            return;
+        }
+        else
+        {
+            board[x, y] = (int)type;
+        }
+    }
     public int GetBlock(int x, int y)
     {
         if (OutOfBounds(x, y))
@@ -146,7 +157,7 @@ public class PlayerBoard
         blockCache = piece.GetBlocks();
         for (int i = 0; i < blockCache.Length; i++)
         {
-            board[blockCache[i][0], blockCache[i][1]] = (int)piece.pieceType;
+            SetBlock(piece.pieceType, blockCache[i][0], blockCache[i][1]);
         }
     }
 

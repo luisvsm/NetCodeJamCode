@@ -191,51 +191,99 @@ public class GamePiece
                     new int[] { 0, 1 }
                 }
             };
-        }/*
+        }
         else if (type == Type.S)
         {
-            return new int[][,] {
-                new int[,] {
-                    { 0, 0 },
-                    { 0, 0 },
-                    { 0, 0 },
-                    { 0, 0 }
+            return new int[][][] {
+                new int[][] {
+                    new int[] { 0, 0 },
+                    new int[] { 0, 1 },
+                    new int[] { -1, 0 },
+                    new int[] { 1, 1 }
+                },
+                new int[][] {
+                    new int[] { 0, 0 },
+                    new int[] { 1, 0 },
+                    new int[] { 1, -1 },
+                    new int[] { 0, 1 }
                 }
             };
         }
         else if (type == Type.Z)
         {
-            return new int[][,] {
-                new int[,] {
-                    { 0, 0 },
-                    { 0, 0 },
-                    { 0, 0 },
-                    { 0, 0 }
+            return new int[][][] {
+                new int[][] {
+                    new int[] { 0, 0 },
+                    new int[] { 0, 1 },
+                    new int[] { -1, 1 },
+                    new int[] { 1, 0 }
+                },
+                new int[][] {
+                    new int[] { 0, 0 },
+                    new int[] { 1, 0 },
+                    new int[] { 0, -1 },
+                    new int[] { 1, 1 }
                 }
             };
         }
         else if (type == Type.J)
         {
-            return new int[][,] {
-                new int[,] {
-                    { 0, 0 },
-                    { 0, 0 },
-                    { 0, 0 },
-                    { 0, 0 }
+            return new int[][][] {
+                new int[][] {
+                    new int[] { 1, 0 },
+                    new int[] { 0, 0 },
+                    new int[] { -1, 0 },
+                    new int[] { -1, -1 }
+                },
+                new int[][] {
+                    new int[] { 0, 1 },
+                    new int[] { 0, 0 },
+                    new int[] { 0, -1 },
+                    new int[] { 1, -1 }
+                },
+                new int[][] {
+                    new int[] { 1, 0 },
+                    new int[] { 0, 0 },
+                    new int[] { -1, 0 },
+                    new int[] { 1, 1 }
+                },
+                new int[][] {
+                    new int[] { 0, -1 },
+                    new int[] { 0, 0 },
+                    new int[] { 0, 1 },
+                    new int[] { -1, 1 }
                 }
             };
         }
         else if (type == Type.L)
         {
-            return new int[][,] {
-                new int[,] {
-                    { 0, 0 },
-                    { 0, 0 },
-                    { 0, 0 },
-                    { 0, 0 }
+            return new int[][][] {
+                new int[][] {
+                    new int[] { 1, 0 },
+                    new int[] { 0, 0 },
+                    new int[] { -1, 0 },
+                    new int[] { -1, 1 }
+                },
+                new int[][] {
+                    new int[] { 0, 1 },
+                    new int[] { 0, 0 },
+                    new int[] { 0, -1 },
+                    new int[] { -1, -1 }
+                },
+                new int[][] {
+                    new int[] { 1, 0 },
+                    new int[] { 0, 0 },
+                    new int[] { -1, 0 },
+                    new int[] { 1, -1 }
+                },
+                new int[][] {
+                    new int[] { 0, -1 },
+                    new int[] { 0, 0 },
+                    new int[] { 0, 1 },
+                    new int[] { 1, 1 }
                 }
             };
-        }*/
+        }
         else
         {
             return new int[][][] { };
