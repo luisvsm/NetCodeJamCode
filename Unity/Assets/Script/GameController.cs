@@ -1,14 +1,18 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using NetcodeIO.NET;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
-    public SwipeInput swipeInput = new SwipeInput();
-    public PlayerBoard playerBoard1;
-    public PlayerBoard playerBoard2;
-    public List<List<Block>> GameBoard = new List<List<Block>>();
+    private byte[] serverToken;
+    private ServerMain localServer;
+    private Client client;
+    private SwipeInput swipeInput = new SwipeInput();
+    private PlayerBoard playerBoard1;
+    private PlayerBoard playerBoard2;
+    private List<List<Block>> GameBoard = new List<List<Block>>();
     public GameObject BaseBlock;
     public RectTransform BaseBlockParant;
     public int blockSize = 64;
@@ -41,11 +45,37 @@ public class GameController : MonoBehaviour
             }
         }
         playerBoard1.PlacePiece();
+
+
+        client = new Client();
+        // Called when the client's state has changed
+        // Use this to detect when a client has connected to a server, or has been disconnected from a server, or connection times out, etc.
+        client.OnStateChanged += clientStateChanged;            // void( ClientState state )
+
+        // Called when a payload has been received from the server
+        // Note that you should not keep a reference to the payload, as it will be returned to a pool after this call completes.
+        client.OnMessageReceived += messageReceivedHandler;		// void( byte[] payload, int payloadSize )
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            if (localServer == null)
+            {
+                localServer = new ServerMain();
+                localServer.Start("local");
+                serverToken = localServer.GetLocalHostToken();
+                Debug.Log("Started Server.");
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.J))
+        {
+            client.Connect(serverToken);		// byte[2048] public connect token as returned by a TokenFactory
+        }
+
         swipeInput.Update();
         if (swipeInput.swipedLeft || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
         {
@@ -81,6 +111,16 @@ public class GameController : MonoBehaviour
             updateDisplay(playerBoard1, 0);
             updateDisplay(playerBoard2, boardHeight);
         }
+    }
+
+    void clientStateChanged(ClientState state)
+    {
+        Debug.Log("clientStateChanged: " + state.ToString());
+    }
+
+    void messageReceivedHandler(byte[] payload, int payloadSize)
+    {
+
     }
 
     void updateDisplay(PlayerBoard playerBoard, int heightOffset)

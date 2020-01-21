@@ -1568,6 +1568,7 @@
      <Compile Include="Assets\Script\Lib\ReliableNetcode.NET\Utils\IO\PacketIO.cs" />
      <Compile Include="Assets\Script\Lib\ReliableNetcode.NET\Utils\ObjPool.cs" />
      <Compile Include="Assets\Script\PlayerBoard.cs" />
+     <Compile Include="Assets\Script\Server\ServerMain.cs" />
      <Compile Include="Assets\Script\SwipeInput.cs" />
      <None Include="Assets\Sprites\ImageCredits.txt" />
  <Reference Include="Unity.Timeline.Editor">
