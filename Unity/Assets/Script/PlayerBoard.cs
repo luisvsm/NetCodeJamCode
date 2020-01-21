@@ -9,18 +9,8 @@ public class PlayerBoard
     private int boardWidth, boardHeight;
     int[][] blockCache = null;
 
-    public void PlacePiece()
+    public void Reset()
     {
-        System.Random random = new System.Random();
-
-        pieces.Add(new GamePiece((GamePiece.Type)random.Next(1, 8), boardWidth, boardHeight));
-    }
-
-    public PlayerBoard(int width, int height)
-    {
-        boardWidth = width;
-        boardHeight = height;
-
         board = new int[boardWidth, boardHeight];
         boardCache = new int[boardWidth, boardHeight];
         for (int i = 0; i < boardWidth; i++)
@@ -31,6 +21,32 @@ public class PlayerBoard
 
             }
         }
+    }
+
+    public void PlacePiece()
+    {
+        System.Random random = new System.Random();
+
+        pieces.Add(new GamePiece((GamePiece.Type)random.Next(1, 8), boardWidth, boardHeight));
+
+
+        int[][] blocks = pieces[pieces.Count - 1].GetBlocks();
+
+        for (int i = 0; i < blocks.Length; i++)
+        {
+            if (GetBlock(blocks[i][0], blocks[i][1]) > 0)
+            {
+                Reset();
+                return;
+            }
+        }
+    }
+
+    public PlayerBoard(int width, int height)
+    {
+        boardWidth = width;
+        boardHeight = height;
+        Reset();
     }
 
     public void SetBlock(GamePiece.Type type, int x, int y)
@@ -142,12 +158,6 @@ public class PlayerBoard
             pieces.Remove(piece);
         }
 
-        if (piecesToAddToBoard.Count > 0)
-        {
-            piecesToAddToBoard.Clear();
-            PlacePiece();
-        }
-
         bool clearLine;
 
         for (int j = 0; j < boardHeight; j++)
@@ -169,6 +179,12 @@ public class PlayerBoard
             {
                 ClearLine(j);
             }
+        }
+
+        if (piecesToAddToBoard.Count > 0)
+        {
+            piecesToAddToBoard.Clear();
+            PlacePiece();
         }
     }
     private void ClearLine(int line)

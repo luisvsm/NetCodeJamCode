@@ -83,17 +83,17 @@ public class ServerMain
 
     private void clientConnectedHandler(RemoteClient client)
     {
-        Debug.Log("clientConnectedHandler");
+        Log("clientConnectedHandler");
     }
 
     private void clientDisconnectedHandler(RemoteClient client)
     {
-        Debug.Log("clientDisconnectedHandler");
+        Log("clientDisconnectedHandler");
     }
 
     private void messageReceivedHandler(RemoteClient client, byte[] payload, int payloadSize)
     {
-        Debug.Log("messageReceivedHandler");
+        Log("messageReceivedHandler");
     }
 
     // https://stackoverflow.com/a/27376368
