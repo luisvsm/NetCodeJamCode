@@ -2,6 +2,7 @@
 
 public class PlayerBoard
 {
+    System.Random random;
     private int[,] board;
     private int[,] boardCache;
     public List<GamePiece> pieces = new List<GamePiece>();
@@ -9,8 +10,12 @@ public class PlayerBoard
     private int boardWidth, boardHeight;
     int[][] blockCache = null;
 
-    public void Reset()
+    public delegate void OnLoseDelegate();
+    public event OnLoseDelegate OnLoseEvent;
+
+    public void Reset(int randomSeed)
     {
+        random = new System.Random(randomSeed);
         board = new int[boardWidth, boardHeight];
         boardCache = new int[boardWidth, boardHeight];
         for (int i = 0; i < boardWidth; i++)
@@ -18,14 +23,12 @@ public class PlayerBoard
             for (int j = 0; j < boardHeight; j++)
             {
                 board[i, j] = 0;
-
             }
         }
     }
 
     public void PlacePiece()
     {
-        System.Random random = new System.Random();
 
         pieces.Add(new GamePiece((GamePiece.Type)random.Next(1, 8), boardWidth, boardHeight));
 
@@ -36,17 +39,18 @@ public class PlayerBoard
         {
             if (GetBlock(blocks[i][0], blocks[i][1]) > 0)
             {
-                Reset();
+                if (OnLoseEvent != null)
+                    OnLoseEvent();
                 return;
             }
         }
     }
 
-    public PlayerBoard(int width, int height)
+    public PlayerBoard(int width, int height, int randomSeed)
     {
         boardWidth = width;
         boardHeight = height;
-        Reset();
+        Reset(randomSeed);
     }
 
     public void SetBlock(GamePiece.Type type, int x, int y)

@@ -18,7 +18,7 @@ public class ServerMain
     TokenFactory tokenFactory;
     int maxClients = 2;
     int port = 5240;
-    int threadSleepMsBetweenUpdates = 25;
+    int threadSleepMsBetweenUpdates = 10;
     ulong protocolID = 1L;
     ulong tokenSequenceNumber = 1L;
     ulong clientID = 1L;
@@ -75,8 +75,10 @@ public class ServerMain
 
         // Called when a payload has been received from a client
         // Note that you should not keep a reference to the payload, as it will be returned to a pool after this call completes.
-        server.OnClientMessageReceived += messageReceivedHandler;	// void( RemoteClient client, byte[] payload, int payloadSize )
+        server.OnClientMessageReceived += messageReceivedHandler;   // void( RemoteClient client, byte[] payload, int payloadSize )
+
         //server.LogLevel = NetcodeLogLevel.Debug;
+
         server.Start();         // start the server running
 
 
@@ -119,7 +121,7 @@ public class ServerMain
     private void clientConnectedHandler(RemoteClient client)
     {
         Log("clientConnectedHandler");
-        clientList.Add(client.ClientID, new RemoteGameClient(client));
+        clientList.Add(client.ClientID, new RemoteGameClient(client, server));
     }
 
     private void clientDisconnectedHandler(RemoteClient client)

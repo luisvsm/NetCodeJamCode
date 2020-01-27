@@ -8,6 +8,12 @@ using UnityEngine.UI;
 using System.Threading;
 using System;
 
+public class QueuedBuffer
+{
+    public byte[] buffer = new byte[200];
+    public int size = 0;
+}
+
 public class GameController : MonoBehaviour
 {
     private byte[] serverToken;
@@ -26,7 +32,13 @@ public class GameController : MonoBehaviour
     public int widthOffset = -320, heightOffset = -448, middleGapHeight = 6;
     public float TicksPerSecond = 1;
     private float lastTick = 0;
-
+    private GameState currentState = GameState.NotPlaying;
+    private enum GameState
+    {
+        InProgress,
+        WaitingForSeed,
+        NotPlaying
+    }
     public enum MoveType
     {
         Left = 1,
@@ -52,8 +64,8 @@ public class GameController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        playerBoard1 = new PlayerBoard(boardWidth, boardHeight);
-        playerBoard2 = new PlayerBoard(boardWidth, boardHeight);
+        playerBoard1 = new PlayerBoard(boardWidth, boardHeight, 0);
+        playerBoard2 = new PlayerBoard(boardWidth, boardHeight, 0);
         lastTick = Time.time;
         for (int i = 0; i < boardWidth; i++)
         {
@@ -73,8 +85,8 @@ public class GameController : MonoBehaviour
                     rectTransform.anchoredPosition = new Vector2((64 * (boardWidth - i)) + widthOffset, (64 * ((boardHeight * 2) - j)) + heightOffset + middleGapHeight);
             }
         }
-        playerBoard1.PlacePiece();
 
+        playerBoard1.OnLoseEvent += OnPlayerLost;
 
         client = new Client();
         // Called when the client's state has changed
@@ -84,6 +96,11 @@ public class GameController : MonoBehaviour
         // Called when a payload has been received from the server
         // Note that you should not keep a reference to the payload, as it will be returned to a pool after this call completes.
         client.OnMessageReceived += messageReceivedHandler;		// void( byte[] payload, int payloadSize )
+    }
+
+    void OnPlayerLost()
+    {
+        currentState = GameState.NotPlaying;
     }
 
     void startLocalServer()
@@ -107,9 +124,38 @@ public class GameController : MonoBehaviour
     {
         if (client.State == ClientState.Connected)
         {
-            byte[] data = BitConverter.GetBytes((UInt16)move);
-            Debug.Log("[Client] Sending " + ((UInt16)move));
-            reliableEndpoint.SendMessage(data, data.Length, QosType.Reliable);
+            byte[] data = null;
+            switch (move)
+            {
+                case MoveType.Left:
+                    data = BitConverter.GetBytes(
+                        (UInt16)NetworkMessage.MessageType.InputLeft
+                    );
+                    break;
+                case MoveType.Right:
+                    data = BitConverter.GetBytes(
+                        (UInt16)NetworkMessage.MessageType.InputRight
+                    );
+                    break;
+                case MoveType.Down:
+                    data = BitConverter.GetBytes(
+                        (UInt16)NetworkMessage.MessageType.InputDown
+                    );
+                    break;
+                case MoveType.Rotate:
+                    data = BitConverter.GetBytes(
+                        (UInt16)NetworkMessage.MessageType.InputRotate
+                    );
+                    break;
+                default:
+                    break;
+            }
+
+            if (data != null)
+            {
+                Debug.Log("[Client] Sending " + ((UInt16)move));
+                reliableEndpoint.SendMessage(data, data.Length, QosType.Reliable);
+            }
         }
     }
 
@@ -142,67 +188,169 @@ public class GameController : MonoBehaviour
             client.Connect(serverToken);		// byte[2048] public connect token as returned by a TokenFactory
         }
 
-        swipeInput.Update();
-        if (swipeInput.swipedLeft || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+        if (currentState == GameState.InProgress)
         {
-            playerBoard1.MoveLeft();
-            updateDisplay(playerBoard1, 0);
-            SendMove(MoveType.Left);
+            swipeInput.Update();
+            if (swipeInput.swipedLeft || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+            {
+                playerBoard1.MoveLeft();
+                updateDisplay(playerBoard1, 0);
+                SendMove(MoveType.Left);
+            }
+            if (swipeInput.swipedRight || Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
+            {
+                playerBoard1.MoveRight();
+                updateDisplay(playerBoard1, 0);
+                SendMove(MoveType.Right);
+            }
+
+            if (swipeInput.swipedDown || Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                lastTick = Time.time;
+                playerBoard1.GameTick();
+                updateDisplay(playerBoard1, 0);
+                SendMove(MoveType.Down);
+            }
+
+            if (swipeInput.swipedUp || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                playerBoard1.Rotate();
+                updateDisplay(playerBoard1, 0);
+                SendMove(MoveType.Rotate);
+            }
+
+            if (lastTick + (1 / TicksPerSecond) < Time.time)
+            {
+                lastTick = Time.time;
+
+                playerBoard1.GameTick();
+
+                updateDisplay(playerBoard1, 0);
+
+                SendMove(MoveType.Down);
+            }
         }
-        if (swipeInput.swipedRight || Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
+
+        if (readQueue.Count > 0)
         {
-            playerBoard1.MoveRight();
-            updateDisplay(playerBoard1, 0);
-            SendMove(MoveType.Right);
+            QueuedBuffer queuedBuffer = readQueue.Dequeue();
+
+            HandleNetworkMessage(
+                NetworkMessage.ParseMessage(queuedBuffer.buffer, queuedBuffer.size),
+                queuedBuffer.buffer,
+                queuedBuffer.size
+            );
         }
+    }
 
-        if (swipeInput.swipedDown || Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+    void HandleNetworkMessage(NetworkMessage.MessageType type, byte[] buffer, int size)
+    {
+        Debug.Log("[client] HandleNetworkMessage " + type);
+        switch (type)
         {
-            lastTick = Time.time;
-            playerBoard1.GameTick();
-            updateDisplay(playerBoard1, 0);
-            SendMove(MoveType.Down);
-        }
+            case NetworkMessage.MessageType.PlayerJoined:
+                break;
+            case NetworkMessage.MessageType.PlayerLeft:
+                break;
+            case NetworkMessage.MessageType.PlayerSeeds:
+                currentState = GameState.InProgress;
+                int[] seeds = NetworkMessage.ParseSeedData(buffer, size);
+                Debug.Log("Seeds: " + seeds[0] + "," + seeds[1]);
+                playerBoard1.Reset(seeds[0]);
+                playerBoard2.Reset(seeds[0]);
 
-        if (swipeInput.swipedUp || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            playerBoard1.Rotate();
-            updateDisplay(playerBoard1, 0);
-            SendMove(MoveType.Rotate);
-        }
+                playerBoard1.PlacePiece();
+                playerBoard2.PlacePiece();
 
-        if (lastTick + (1 / TicksPerSecond) < Time.time)
-        {
-            lastTick = Time.time;
-
-            playerBoard1.GameTick();
-            playerBoard2.GameTick();
-
-            updateDisplay(playerBoard1, 0);
-            updateDisplay(playerBoard2, boardHeight);
-
-            SendMove(MoveType.Down);
+                updateDisplay(playerBoard1, 0);
+                updateDisplay(playerBoard2, boardHeight);
+                break;
+            case NetworkMessage.MessageType.InputLeft:
+                playerBoard2.MoveLeft();
+                updateDisplay(playerBoard2, boardHeight);
+                break;
+            case NetworkMessage.MessageType.InputRight:
+                playerBoard2.MoveRight();
+                updateDisplay(playerBoard2, boardHeight);
+                break;
+            case NetworkMessage.MessageType.InputRotate:
+                playerBoard2.Rotate();
+                updateDisplay(playerBoard2, boardHeight);
+                break;
+            case NetworkMessage.MessageType.InputDown:
+                playerBoard2.GameTick();
+                updateDisplay(playerBoard2, boardHeight);
+                break;
+            default:
+                break;
         }
     }
 
     void clientStateChanged(ClientState state)
     {
         Debug.Log("clientStateChanged: " + state.ToString());
+        if (state == ClientState.Connected)
+        {
+
+            reliableEndpoint.SendMessage(
+                BitConverter.GetBytes((UInt16)NetworkMessage.MessageType.FindGame),
+                2,
+                QosType.Reliable
+            );
+        }
     }
 
     void messageReceivedHandler(byte[] payload, int payloadSize)
     {
+        //Debug.Log("[Client] messageReceivedHandler");
         // when you receive a datagram, pass the byte array and the number of bytes to ReceivePacket
         // this will extract messages from the datagram and call your custom ReceiveCallback with any received messages.
-        reliableEndpoint.ReceivePacket(payload, payloadSize);
+        try
+        {
+            reliableEndpoint.ReceivePacket(payload, payloadSize);
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError(ex);
+            throw;
+        }
     }
+    QueuedBuffer[] bufferQueue = new QueuedBuffer[10];
+    int bufferPos = 0;
+
+    Queue<QueuedBuffer> readQueue = new Queue<QueuedBuffer>();
+
 
     void ReliableReceiveCallback(byte[] buffer, int size)
     {
+        //Debug.Log("[Client] ReliableReceiveCallback");
         // this will be called when the endpoint extracts messages from received packets
         // buffer is byte[] and size is number of bytes in the buffer.
         // do not keep a reference to buffer as it will be pooled after this function returns
-        Debug.Log("Got buffer! " + Encoding.UTF8.GetString(buffer, 0, size));
+        try
+        {
+            if (size > 200)
+            {
+                Debug.LogError("Packet was too large, dropping.");
+                return;
+            }
+
+            bufferPos = (bufferPos + 1) % bufferQueue.Length;
+            if (bufferQueue[bufferPos] == null)
+            {
+                bufferQueue[bufferPos] = new QueuedBuffer();
+            }
+
+            buffer.CopyTo(bufferQueue[bufferPos].buffer, 0);
+            bufferQueue[bufferPos].size = size;
+
+            readQueue.Enqueue(bufferQueue[bufferPos]);
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError(ex);
+            throw;
+        }
     }
 
     void ReliableTransmitCallback(byte[] buffer, int size)
@@ -215,7 +363,15 @@ public class GameController : MonoBehaviour
         // this will be called when a datagram is ready to be sent across the network.
         // buffer is byte[] and size is number of bytes in the buffer
         // do not keep a reference to the buffer as it will be pooled after this function returns
-        client.Send(buffer, size);
+        try
+        {
+            client.Send(buffer, size);
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError(ex);
+            throw;
+        }
     }
 
     void updateDisplay(PlayerBoard playerBoard, int heightOffset)
@@ -228,6 +384,7 @@ public class GameController : MonoBehaviour
             {
                 if (i < 0 || i > boardWidth || j < 0 || j > boardHeight)
                     continue;
+
                 GameBoard[i][j + heightOffset].SetBlockType(board[i, j]);
             }
         }

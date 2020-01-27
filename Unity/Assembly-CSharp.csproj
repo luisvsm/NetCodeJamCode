@@ -57,7 +57,6 @@
   <ItemGroup>
      <Compile Include="Assets\Script\Block.cs" />
      <Compile Include="Assets\Script\GameController.cs" />
-     <Compile Include="Assets\Script\GamePiece.cs" />
      <Compile Include="Assets\Script\Lib\BCCrypto\bzip2\src\BZip2Constants.cs" />
      <Compile Include="Assets\Script\Lib\BCCrypto\bzip2\src\CBZip2InputStream.cs" />
      <Compile Include="Assets\Script\Lib\BCCrypto\bzip2\src\CBZip2OutputStream.cs" />
@@ -1567,9 +1566,11 @@
      <Compile Include="Assets\Script\Lib\ReliableNetcode.NET\Utils\IO\ByteStream.cs" />
      <Compile Include="Assets\Script\Lib\ReliableNetcode.NET\Utils\IO\PacketIO.cs" />
      <Compile Include="Assets\Script\Lib\ReliableNetcode.NET\Utils\ObjPool.cs" />
-     <Compile Include="Assets\Script\PlayerBoard.cs" />
      <Compile Include="Assets\Script\Server\RemoteGameClient.cs" />
      <Compile Include="Assets\Script\Server\ServerMain.cs" />
+     <Compile Include="Assets\Script\Shared\GamePiece.cs" />
+     <Compile Include="Assets\Script\Shared\NetworkMessage.cs" />
+     <Compile Include="Assets\Script\Shared\PlayerBoard.cs" />
      <Compile Include="Assets\Script\SwipeInput.cs" />
      <None Include="Assets\Sprites\ImageCredits.txt" />
  <Reference Include="Unity.Timeline.Editor">
