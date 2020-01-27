@@ -95,7 +95,9 @@ public class GameController : MonoBehaviour
 
         // Called when a payload has been received from the server
         // Note that you should not keep a reference to the payload, as it will be returned to a pool after this call completes.
-        client.OnMessageReceived += messageReceivedHandler;		// void( byte[] payload, int payloadSize )
+        client.OnMessageReceived += messageReceivedHandler;     // void( byte[] payload, int payloadSize )
+
+        MakeLocalHostWork();
     }
 
     void OnPlayerLost()
@@ -158,6 +160,33 @@ public class GameController : MonoBehaviour
             }
         }
     }
+    void MakeLocalHostWork()
+    {
+        if (localServer == null)
+        {
+            localServer = new ServerMain();
+            localServerThread = new Thread(new ThreadStart(startLocalServer));
+
+            reliableEndpoint = new ReliableEndpoint();
+            reliableEndpoint.ReceiveCallback += ReliableReceiveCallback;
+            reliableEndpoint.TransmitCallback += ReliableTransmitCallback;
+
+            localServerThread.Start();
+            Debug.Log("Started Server.");
+        }
+
+
+        StartCoroutine(WaitAndJoin());
+
+    }
+
+    IEnumerator WaitAndJoin()
+    {
+        yield return new WaitForSeconds(1);
+
+        serverToken = localServer.GetLocalHostToken();
+        client.Connect(serverToken);        // byte[2048] public connect token as returned by a TokenFactory
+    }
 
     // Update is called once per frame
     void Update()
@@ -165,28 +194,6 @@ public class GameController : MonoBehaviour
         // update internal buffers
         if (reliableEndpoint != null)
             reliableEndpoint.Update();
-
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            if (localServer == null)
-            {
-                localServer = new ServerMain();
-                localServerThread = new Thread(new ThreadStart(startLocalServer));
-
-                reliableEndpoint = new ReliableEndpoint();
-                reliableEndpoint.ReceiveCallback += ReliableReceiveCallback;
-                reliableEndpoint.TransmitCallback += ReliableTransmitCallback;
-
-                localServerThread.Start();
-                Debug.Log("Started Server.");
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.J))
-        {
-            serverToken = localServer.GetLocalHostToken();
-            client.Connect(serverToken);		// byte[2048] public connect token as returned by a TokenFactory
-        }
 
         if (currentState == GameState.InProgress)
         {
