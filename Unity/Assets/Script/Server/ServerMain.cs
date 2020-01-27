@@ -1,8 +1,12 @@
 using NetcodeIO.NET;
 using System.Globalization;
+using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
+using System.Collections.Generic;
+using System.Timers;
+using System;
 
 #if UNITY_EDITOR
 using UnityEngine;
@@ -14,14 +18,17 @@ public class ServerMain
     TokenFactory tokenFactory;
     int maxClients = 2;
     int port = 5240;
+    int threadSleepMsBetweenUpdates = 25;
     ulong protocolID = 1L;
     ulong tokenSequenceNumber = 1L;
     ulong clientID = 1L;
+    Dictionary<ulong, RemoteGameClient> clientList = new Dictionary<ulong, RemoteGameClient>();
+    private static System.Timers.Timer updateTick;
 
-    public void Log(object log)
+    public void Log(string log)
     {
 #if UNITY_EDITOR
-        Debug.Log(log);
+        Debug.Log("[Server] " + log);
 #endif
     }
     public void LogError(object log)
@@ -30,6 +37,13 @@ public class ServerMain
         Debug.LogError(log);
 #endif
     }
+
+    public void Stop()
+    {
+        server.Stop();
+        updateTick.Stop();
+    }
+
     public void Start(string publicAddress, byte[] privKey = null)
     {
         this.privKey = privKey;
@@ -53,8 +67,6 @@ public class ServerMain
             getPrivateKey()       // byte[32], must be the same as the private key passed to the Server constructor
         );
 
-        server.Start();			// start the server running
-
         // Called when a client has connected
         server.OnClientConnected += clientConnectedHandler;		// void( RemoteClient client )
 
@@ -64,6 +76,29 @@ public class ServerMain
         // Called when a payload has been received from a client
         // Note that you should not keep a reference to the payload, as it will be returned to a pool after this call completes.
         server.OnClientMessageReceived += messageReceivedHandler;	// void( RemoteClient client, byte[] payload, int payloadSize )
+        //server.LogLevel = NetcodeLogLevel.Debug;
+        server.Start();         // start the server running
+
+
+        SetUpdateTimer();
+    }
+
+    private void SetUpdateTimer()
+    {
+        // Create a timer with a two second interval.
+        updateTick = new System.Timers.Timer(threadSleepMsBetweenUpdates);
+        // Hook up the Elapsed event for the timer. 
+        updateTick.Elapsed += OnUpdate;
+        updateTick.AutoReset = true;
+        updateTick.Enabled = true;
+    }
+
+    private void OnUpdate(object source, ElapsedEventArgs e)
+    {
+        foreach (KeyValuePair<ulong, RemoteGameClient> entry in clientList)
+        {
+            entry.Value.Update();
+        }
     }
 
     public byte[] GetLocalHostToken()
@@ -84,16 +119,25 @@ public class ServerMain
     private void clientConnectedHandler(RemoteClient client)
     {
         Log("clientConnectedHandler");
+        clientList.Add(client.ClientID, new RemoteGameClient(client));
     }
 
     private void clientDisconnectedHandler(RemoteClient client)
     {
         Log("clientDisconnectedHandler");
+        clientList.Remove(client.ClientID);
     }
 
     private void messageReceivedHandler(RemoteClient client, byte[] payload, int payloadSize)
     {
-        Log("messageReceivedHandler");
+        if (client.Confirmed)
+        {
+            clientList[client.ClientID].ReceivePacket(payload, payloadSize);
+        }
+        else
+        {
+            Log("Message from unconfirmed client. Ignore it");
+        }
     }
 
     // https://stackoverflow.com/a/27376368
