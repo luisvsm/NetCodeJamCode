@@ -62,12 +62,17 @@ public class NetworkClient : MonoBehaviour
 
     public void JoinAndStartLocalDevServer()
     {
-        LocalServer.instance.Start();
+        LocalServer.instance.StartServer();
 
         client.Connect(
             // byte[2048] connect token as returned by a TokenFactory
             LocalServer.instance.GetLocalHostToken()
         );
+    }
+    public void Disconnect()
+    {
+        LocalServer.instance.StopServer();
+        client.Disconnect();
     }
 
     void ClientStateChanged(ClientState state)
@@ -80,11 +85,7 @@ public class NetworkClient : MonoBehaviour
             reliableEndpoint.ReceiveCallback += ReliableReceiveCallback;
             reliableEndpoint.TransmitCallback += ReliableTransmitCallback;
 
-            reliableEndpoint.SendMessage(
-                BitConverter.GetBytes((UInt16)NetworkMessage.MessageType.FindGame),
-                2,
-                QosType.Reliable
-            );
+            SendFindGame();
         }
         else
         {
@@ -153,7 +154,6 @@ public class NetworkClient : MonoBehaviour
             // Update internal buffers
             reliableEndpoint.Update();
 
-
         if (readQueue.Count > 0)
         {
             QueuedBuffer queuedBuffer = readQueue.Dequeue();
@@ -170,7 +170,16 @@ public class NetworkClient : MonoBehaviour
                 Debug.LogError("[NetworkClient.cs] OnMessageReceived is null. Ignoring received message");
             }
         }
+    }
 
+    public void SendFindGame()
+    {
+
+        reliableEndpoint.SendMessage(
+            BitConverter.GetBytes((UInt16)NetworkMessage.MessageType.FindGame),
+            2,
+            QosType.Reliable
+        );
     }
 
     public void SendMove(GameController.MoveType move)

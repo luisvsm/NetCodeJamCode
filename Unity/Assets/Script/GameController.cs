@@ -1,12 +1,10 @@
-﻿using System.Collections;
-using System.Text;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using System;
 
 public class GameController : MonoBehaviour
 {
+    public GameObject gameMenu;
+    public GameObject gameBoard;
     private SwipeInput swipeInput = new SwipeInput();
     private PlayerBoard playerBoard1;
     private PlayerBoard playerBoard2;
@@ -33,6 +31,67 @@ public class GameController : MonoBehaviour
         Down = 4
     }
 
+    public void StartSinglePlayer()
+    {
+        gameBoard.SetActive(true);
+        gameMenu.SetActive(false);
+
+        currentState = GameState.InProgress;
+        playerBoard1.Reset(0);
+        playerBoard1.PlacePiece();
+    }
+
+    public void StartMultiplayer()
+    {
+        gameBoard.SetActive(true);
+        gameMenu.SetActive(false);
+
+        leaveGameCallback = () =>
+        {
+            NetworkClient.instance.Disconnect();
+        };
+    }
+
+    public void StartLocalDevServer()
+    {
+        gameBoard.SetActive(true);
+        gameMenu.SetActive(false);
+        NetworkClient.instance.JoinAndStartLocalDevServer();
+        leaveGameCallback = () =>
+        {
+            NetworkClient.instance.Disconnect();
+        };
+    }
+
+    public void LeaveGame()
+    {
+        if (leaveGameCallback != null)
+        {
+            leaveGameCallback();
+            leaveGameCallback = null;
+        }
+        gameBoard.SetActive(false);
+        gameMenu.SetActive(true);
+    }
+
+    void OnApplicationFocus(bool hasFocus)
+    {
+        if (!hasFocus)
+        {
+            LeaveGame();
+        }
+    }
+
+    void OnApplicationPause(bool paused)
+    {
+        if (paused)
+        {
+            LeaveGame();
+        }
+    }
+
+    public delegate void OnLeaveGame();
+    public OnLeaveGame leaveGameCallback;
 
     // Start is called before the first frame update
     void Start()
@@ -63,18 +122,17 @@ public class GameController : MonoBehaviour
         playerBoard1.OnLoseEvent += OnPlayerLost;
 
         NetworkClient.instance.OnMessageReceived += HandleNetworkMessage;
-        NetworkClient.instance.JoinAndStartLocalDevServer();
     }
 
     void OnPlayerLost()
     {
         currentState = GameState.NotPlaying;
+        LeaveGame();
     }
 
     // Update is called once per frame
     void Update()
     {
-
         if (currentState == GameState.InProgress)
         {
             swipeInput.Update();
@@ -116,7 +174,6 @@ public class GameController : MonoBehaviour
                 NetworkClient.instance.SendMove(MoveType.Down);
             }
         }
-
     }
 
     void HandleNetworkMessage(NetworkMessage.MessageType type, byte[] buffer, int size)
@@ -161,6 +218,7 @@ public class GameController : MonoBehaviour
                 break;
         }
     }
+
     void updateDisplay(PlayerBoard playerBoard, int heightOffset)
     {
         int[,] board = playerBoard.GetBoard();

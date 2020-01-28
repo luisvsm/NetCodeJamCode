@@ -36,10 +36,10 @@ public class LocalServer : MonoBehaviour
 
     private void OnApplicationQuit()
     {
-        Stop();
+        StopServer();
     }
 
-    public void Stop()
+    public void StopServer()
     {
 
         if (localServerThread != null)
@@ -54,7 +54,7 @@ public class LocalServer : MonoBehaviour
         }
     }
 
-    public void Start()
+    public void StartServer()
     {
         if (localServer == null)
         {

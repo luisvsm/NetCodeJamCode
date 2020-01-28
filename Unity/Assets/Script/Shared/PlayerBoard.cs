@@ -18,6 +18,8 @@ public class PlayerBoard
         random = new System.Random(randomSeed);
         board = new int[boardWidth, boardHeight];
         boardCache = new int[boardWidth, boardHeight];
+        pieces = new List<GamePiece>();
+        piecesToAddToBoard = new List<GamePiece>();
         for (int i = 0; i < boardWidth; i++)
         {
             for (int j = 0; j < boardHeight; j++)
