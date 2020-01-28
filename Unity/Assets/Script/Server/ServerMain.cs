@@ -8,33 +8,34 @@ using System.Collections.Generic;
 using System.Timers;
 using System;
 
-#if UNITY_EDITOR
-using UnityEngine;
-#endif
-
 public class ServerMain
 {
     Server server;
-    TokenFactory tokenFactory;
+    TokenFactory tokenFactory = new TokenFactory(
+        protocolID,      // must be the same protocol ID as passed to both client and server constructors
+        getPrivateKey()       // byte[32], must be the same as the private key passed to the Server constructor
+    );
+
     int maxClients = 2;
     int port = 5240;
     int threadSleepMsBetweenUpdates = 10;
-    ulong protocolID = 1L;
+    const ulong protocolID = 1L;
     ulong tokenSequenceNumber = 1L;
     ulong clientID = 1L;
+    private static byte[] privKey;
     Dictionary<ulong, RemoteGameClient> clientList = new Dictionary<ulong, RemoteGameClient>();
     private static System.Timers.Timer updateTick;
 
     public void Log(string log)
     {
 #if UNITY_EDITOR
-        Debug.Log("[Server] " + log);
+        UnityEngine.Debug.Log("[Server] " + log);
 #endif
     }
     public void LogError(object log)
     {
 #if UNITY_EDITOR
-        Debug.LogError(log);
+        UnityEngine.Debug.LogError(log);
 #endif
     }
 
@@ -44,10 +45,8 @@ public class ServerMain
         updateTick.Stop();
     }
 
-    public void Start(string publicAddress, byte[] privKey = null)
+    public void Start(string publicAddress, byte[] privateKey = null)
     {
-        this.privKey = privKey;
-
         if (publicAddress == "" || publicAddress == "local")
         {
             publicAddress = getLocalIPAddress();
@@ -60,11 +59,6 @@ public class ServerMain
             publicAddress, port,    // string public address and int port clients will connect to
             protocolID,     // ulong protocol ID shared between clients and server
             getPrivateKey()     // byte[32] private crypto key shared between backend servers
-        );
-
-        tokenFactory = new TokenFactory(
-            protocolID,      // must be the same protocol ID as passed to both client and server constructors
-            getPrivateKey()       // byte[32], must be the same as the private key passed to the Server constructor
         );
 
         // Called when a client has connected
@@ -192,8 +186,7 @@ public class ServerMain
         return new IPEndPoint(ip, port);
     }
 
-    byte[] privKey;
-    private byte[] getPrivateKey()
+    private static byte[] getPrivateKey()
     {
         if (privKey == null)
         {

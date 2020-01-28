@@ -1566,6 +1566,9 @@
      <Compile Include="Assets\Script\Lib\ReliableNetcode.NET\Utils\IO\ByteStream.cs" />
      <Compile Include="Assets\Script\Lib\ReliableNetcode.NET\Utils\IO\PacketIO.cs" />
      <Compile Include="Assets\Script\Lib\ReliableNetcode.NET\Utils\ObjPool.cs" />
+     <Compile Include="Assets\Script\LocalServer.cs" />
+     <Compile Include="Assets\Script\NetworkClient.cs" />
+     <Compile Include="Assets\Script\QueuedBuffer.cs" />
      <Compile Include="Assets\Script\Server\RemoteGameClient.cs" />
      <Compile Include="Assets\Script\Server\ServerMain.cs" />
      <Compile Include="Assets\Script\Shared\GamePiece.cs" />
