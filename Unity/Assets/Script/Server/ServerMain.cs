@@ -23,6 +23,7 @@ public class ServerMain
     ulong tokenSequenceNumber = 1L;
     ulong clientID = 1L;
     private static byte[] privKey;
+    public static RemoteGameClient clientWaitingToMatch;
     Dictionary<ulong, RemoteGameClient> clientList = new Dictionary<ulong, RemoteGameClient>();
     private static System.Timers.Timer updateTick;
 
@@ -135,6 +136,19 @@ public class ServerMain
     private void clientDisconnectedHandler(RemoteClient client)
     {
         Log("clientDisconnectedHandler");
+        if (
+            clientWaitingToMatch != null &&
+            clientWaitingToMatch.remoteClient != null &&
+            clientWaitingToMatch.remoteClient.ClientID == client.ClientID
+            )
+        {
+            clientWaitingToMatch = null;
+        }
+        if (clientList.ContainsKey(client.ClientID) && clientList[client.ClientID].remoteOpponent != null)
+        {
+            server.Disconnect(clientList[client.ClientID].remoteOpponent.remoteClient);
+        }
+
         clientList.Remove(client.ClientID);
     }
 

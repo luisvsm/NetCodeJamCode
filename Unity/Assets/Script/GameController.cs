@@ -47,7 +47,11 @@ public class GameController : MonoBehaviour
     {
         gameBoard.SetActive(true);
         gameMenu.SetActive(false);
-        StartCoroutine(GetConnectTokenRequest("http://45.76.125.216:8080/token"));
+        leaveGameCallback = () =>
+        {
+            NetworkClient.instance.Disconnect();
+        };
+        StartCoroutine(GetConnectTokenRequest("https://melbggj2020.luisvsm.com/token"));
     }
     IEnumerator GetConnectTokenRequest(string uri)
     {
@@ -66,12 +70,7 @@ public class GameController : MonoBehaviour
             }
             else
             {
-                NetworkClient.instance.JoinOnlineServer(webRequest.downloadHandler.text);
-
-                leaveGameCallback = () =>
-                {
-                    NetworkClient.instance.Disconnect();
-                };
+                NetworkClient.instance.JoinOnlineServer(webRequest.downloadHandler.text, LeaveGame);
             }
         }
     }
@@ -85,7 +84,6 @@ public class GameController : MonoBehaviour
             NetworkClient.instance.Disconnect();
         };
     }
-
     public void LeaveGame()
     {
         if (leaveGameCallback != null)
@@ -213,7 +211,7 @@ public class GameController : MonoBehaviour
                 int[] seeds = NetworkMessage.ParseSeedData(buffer, size);
                 Debug.Log("Seeds: " + seeds[0] + "," + seeds[1]);
                 playerBoard1.Reset(seeds[0]);
-                playerBoard2.Reset(seeds[0]);
+                playerBoard2.Reset(seeds[1]);
 
                 playerBoard1.PlacePiece();
                 playerBoard2.PlacePiece();

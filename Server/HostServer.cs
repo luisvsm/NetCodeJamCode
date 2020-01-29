@@ -25,7 +25,7 @@ public class HostServer
             {
                 webBuilder.ConfigureKestrel(serverOptions =>
                 {
-                    serverOptions.Listen(IPAddress.Parse(HostIP), 8080);
+                    serverOptions.Listen(IPAddress.Loopback, 8080);
                 })
                 .UseStartup<GetToken>();
             });

@@ -6,7 +6,8 @@ using System;
 public class RemoteGameClient
 {
     private Random random = new Random();
-    private RemoteClient remoteClient;
+    public RemoteClient remoteClient;
+    public RemoteGameClient remoteOpponent;
     private ReliableEndpoint reliableEndpoint;
     private Server server;
 
@@ -35,6 +36,7 @@ public class RemoteGameClient
         reliableEndpoint.TransmitCallback += ReliableTransmitCallback;
         this.remoteClient = remoteClient;
     }
+
     public void ReliableReceiveCallback(byte[] buffer, int size)
     {
         // this will be called when the endpoint extracts messages from received packets
@@ -44,19 +46,51 @@ public class RemoteGameClient
         Log("Messge! " + mType);
         if (mType == NetworkMessage.MessageType.FindGame)
         {
-            byte[] sendBytes = new byte[10];
-            random.NextBytes(sendBytes);
+            if (ServerMain.clientWaitingToMatch == null)
+            {
+                ServerMain.clientWaitingToMatch = this;
+            }
+            else
+            {
+                ServerMain.clientWaitingToMatch.remoteOpponent = this;
+                remoteOpponent = ServerMain.clientWaitingToMatch;
 
-            BitConverter.GetBytes(
-                (UInt16)NetworkMessage.MessageType.PlayerSeeds
-            ).CopyTo(sendBytes, 0);
+                byte[] playerOneSeed = new byte[4];
+                byte[] playerTwoSeed = new byte[4];
+                random.NextBytes(playerOneSeed);
+                random.NextBytes(playerTwoSeed);
 
-            reliableEndpoint.SendMessage(sendBytes, sendBytes.Length, QosType.Reliable);
+                byte[] playerOneData = new byte[10];
+                byte[] playerTwoData = new byte[10];
+
+                BitConverter.GetBytes(
+                    (UInt16)NetworkMessage.MessageType.PlayerSeeds
+                ).CopyTo(playerOneData, 0);
+
+                playerOneData.CopyTo(playerTwoData, 0);
+
+                playerOneSeed.CopyTo(playerOneData, 2);
+                playerOneSeed.CopyTo(playerTwoData, 6);
+
+                playerTwoSeed.CopyTo(playerOneData, 6);
+                playerTwoSeed.CopyTo(playerTwoData, 2);
+
+                reliableEndpoint.SendMessage(playerOneData, playerOneData.Length, QosType.Reliable);
+                ServerMain.clientWaitingToMatch.Send(playerTwoData, playerTwoData.Length, QosType.Reliable);
+                ServerMain.clientWaitingToMatch = null;
+            }
         }
         else
         {
             Log("Forwarding! " + mType);
-            reliableEndpoint.SendMessage(BitConverter.GetBytes((UInt16)mType), 2, QosType.Reliable);
+            if (remoteOpponent == null)
+            {
+                server.Disconnect(remoteClient);
+            }
+            else
+            {
+                remoteOpponent.Send(BitConverter.GetBytes((UInt16)mType), 2, QosType.Reliable);
+            }
         }
     }
 
