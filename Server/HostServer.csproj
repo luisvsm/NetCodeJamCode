@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <DefaultItemExcludes>
+      $(DefaultItemExcludes);
+      FilesFromUnity/Lib/BCCrypto/Properties/AssemblyInfo.cs;
+      FilesFromUnity/Lib/BCCrypto/src/asn1/util/Dump.cs;
+      FilesFromUnity/Lib/BCCrypto/src/bcpg/ArmoredOutputStream.cs
+    </DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>
