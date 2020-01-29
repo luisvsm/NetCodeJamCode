@@ -31,7 +31,7 @@ public class LocalServer : MonoBehaviour
 
     public byte[] GetLocalHostToken()
     {
-        return localServer.GetLocalHostToken();
+        return localServer.GetHostToken();
     }
 
     private void OnApplicationQuit()

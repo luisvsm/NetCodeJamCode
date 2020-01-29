@@ -15,12 +15,16 @@ public class RemoteGameClient
     {
 #if UNITY_EDITOR
         UnityEngine.Debug.Log("[Server.RemoteGameClient] " + log);
+#else
+        Console.WriteLine("[Server.RemoteGameClient] " + log.ToString());
 #endif
     }
     public void LogError(object log)
     {
 #if UNITY_EDITOR
         UnityEngine.Debug.LogError(log);
+#else
+        Console.WriteLine("[Error] " + log.ToString());
 #endif
     }
 

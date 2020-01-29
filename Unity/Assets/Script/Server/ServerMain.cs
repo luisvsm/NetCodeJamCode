@@ -30,12 +30,16 @@ public class ServerMain
     {
 #if UNITY_EDITOR
         UnityEngine.Debug.Log("[Server] " + log);
+#else
+        Console.WriteLine("[Server] " + log.ToString());
 #endif
     }
     public void LogError(object log)
     {
 #if UNITY_EDITOR
         UnityEngine.Debug.LogError(log);
+#else
+        Console.WriteLine("[Error] " + log.ToString());
 #endif
     }
 
@@ -44,19 +48,24 @@ public class ServerMain
         server.Stop();
         updateTick.Stop();
     }
+    string address = "";
 
     public void Start(string publicAddress, byte[] privateKey = null)
     {
         if (publicAddress == "" || publicAddress == "local")
         {
-            publicAddress = getLocalIPAddress();
+            address = getLocalIPAddress();
+        }
+        else
+        {
+            address = publicAddress;
         }
 
-        Log("Address: " + publicAddress);
+        Log("Address: " + address);
 
         server = new Server(
             maxClients,     // int maximum number of clients which can connect to this server at one time
-            publicAddress, port,    // string public address and int port clients will connect to
+            address, port,    // string public address and int port clients will connect to
             protocolID,     // ulong protocol ID shared between clients and server
             getPrivateKey()     // byte[32] private crypto key shared between backend servers
         );
@@ -97,13 +106,18 @@ public class ServerMain
         }
     }
 
-    public byte[] GetLocalHostToken()
+    public byte[] GetHostToken()
     {
         tokenSequenceNumber++;
         clientID++;
 
+        if (address == "" || address == "local")
+        {
+            address = getLocalIPAddress();
+        }
+
         return tokenFactory.GenerateConnectToken(
-            new IPEndPoint[] { createIPEndPoint(getLocalIPAddress() + ":" + port) },		// IPEndPoint[] list of addresses the client can connect to. Must have at least one and no more than 32.
+            new IPEndPoint[] { createIPEndPoint(address + ":" + port) },		// IPEndPoint[] list of addresses the client can connect to. Must have at least one and no more than 32.
             300,		// in how many seconds will the token expire
             10,		// how long it takes until a connection attempt times out and the client tries the next server.
             tokenSequenceNumber,		// ulong token sequence number used to uniquely identify a connect token.
