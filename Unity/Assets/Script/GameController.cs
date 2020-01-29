@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class GameController : MonoBehaviour
 {
@@ -45,13 +47,34 @@ public class GameController : MonoBehaviour
     {
         gameBoard.SetActive(true);
         gameMenu.SetActive(false);
-
-        leaveGameCallback = () =>
-        {
-            NetworkClient.instance.Disconnect();
-        };
+        StartCoroutine(GetConnectTokenRequest("http://45.76.125.216:8080/token"));
     }
+    IEnumerator GetConnectTokenRequest(string uri)
+    {
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(uri))
+        {
+            // Request and wait for the desired page.
+            yield return webRequest.SendWebRequest();
 
+            string[] pages = uri.Split('/');
+            int page = pages.Length - 1;
+
+            if (webRequest.isNetworkError)
+            {
+                Debug.LogError(pages[page] + ": Error: " + webRequest.error);
+                LeaveGame();
+            }
+            else
+            {
+                NetworkClient.instance.JoinOnlineServer(webRequest.downloadHandler.text);
+
+                leaveGameCallback = () =>
+                {
+                    NetworkClient.instance.Disconnect();
+                };
+            }
+        }
+    }
     public void StartLocalDevServer()
     {
         gameBoard.SetActive(true);

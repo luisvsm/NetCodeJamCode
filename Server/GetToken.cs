@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Text;
+using System;
 
 public class GetToken
 {
@@ -19,6 +19,7 @@ public class GetToken
     // For more information on how to configure your application, visit http://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
+
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -35,7 +36,7 @@ public class GetToken
             {
                 byte[] connectToken = HostServer.gameServer.GetHostToken();
                 await context.Response.WriteAsync(
-                    Encoding.UTF8.GetString(connectToken, 0, connectToken.Length)
+                    Convert.ToBase64String(connectToken, 0, connectToken.Length)
                 );
             }
             else

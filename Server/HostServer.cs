@@ -1,11 +1,12 @@
 
 using System;
 using System.Net;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 public class HostServer
 {
+    //public const string HostIP = "0.0.0.0";
     public const string HostIP = "45.76.125.216";
     public static ServerMain gameServer;
 
@@ -15,11 +16,17 @@ public class HostServer
 
         gameServer = new ServerMain();
         gameServer.Start(HostIP);
-        BuildWebHost(args).Run();
+        CreateHostBuilder(args).Build().Run();
     }
 
-    public static IWebHost BuildWebHost(string[] args) =>
-        WebHost.CreateDefaultBuilder(args)
-            .UseStartup<GetToken>()
-            .Build();
+    public static IHostBuilder CreateHostBuilder(string[] args) =>
+        Host.CreateDefaultBuilder(args)
+            .ConfigureWebHostDefaults(webBuilder =>
+            {
+                webBuilder.ConfigureKestrel(serverOptions =>
+                {
+                    serverOptions.Listen(IPAddress.Parse(HostIP), 8080);
+                })
+                .UseStartup<GetToken>();
+            });
 }

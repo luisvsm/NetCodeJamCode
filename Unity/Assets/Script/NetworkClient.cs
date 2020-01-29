@@ -69,6 +69,13 @@ public class NetworkClient : MonoBehaviour
             LocalServer.instance.GetLocalHostToken()
         );
     }
+    public void JoinOnlineServer(string connectToken)
+    {
+        byte[] connectTokenBytes = Convert.FromBase64String(connectToken);
+
+        Debug.Log("connectTokenBytes: " + connectTokenBytes.Length);
+        client.Connect(connectTokenBytes);
+    }
     public void Disconnect()
     {
         LocalServer.instance.StopServer();
