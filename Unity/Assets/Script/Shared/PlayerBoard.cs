@@ -28,6 +28,10 @@ public class PlayerBoard
             }
         }
     }
+    public void Clear()
+    {
+        Reset(0);
+    }
 
     public void PlacePiece()
     {

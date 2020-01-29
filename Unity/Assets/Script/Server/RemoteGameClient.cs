@@ -83,13 +83,14 @@ public class RemoteGameClient
         else
         {
             Log("Forwarding! " + mType);
-            if (remoteOpponent == null)
+            if (remoteOpponent == null && remoteClient != null && server != null)
             {
                 server.Disconnect(remoteClient);
             }
             else
             {
-                remoteOpponent.Send(BitConverter.GetBytes((UInt16)mType), 2, QosType.Reliable);
+                if (remoteOpponent != null)
+                    remoteOpponent.Send(BitConverter.GetBytes((UInt16)mType), 2, QosType.Reliable);
             }
         }
     }

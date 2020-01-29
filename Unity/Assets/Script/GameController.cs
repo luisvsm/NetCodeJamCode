@@ -93,13 +93,18 @@ public class GameController : MonoBehaviour
         }
         gameBoard.SetActive(false);
         gameMenu.SetActive(true);
+        currentState = GameState.NotPlaying;
+        playerBoard1.Clear();
+        playerBoard2.Clear();
+        updateDisplay(playerBoard1, 0);
+        updateDisplay(playerBoard2, 0);
     }
 
     void OnApplicationFocus(bool hasFocus)
     {
         if (!hasFocus)
         {
-            LeaveGame();
+            //LeaveGame();
         }
     }
 
@@ -107,7 +112,7 @@ public class GameController : MonoBehaviour
     {
         if (paused)
         {
-            LeaveGame();
+            //LeaveGame();
         }
     }
 
@@ -147,7 +152,6 @@ public class GameController : MonoBehaviour
 
     void OnPlayerLost()
     {
-        currentState = GameState.NotPlaying;
         LeaveGame();
     }
 

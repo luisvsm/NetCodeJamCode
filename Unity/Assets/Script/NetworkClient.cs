@@ -21,6 +21,7 @@ public class NetworkClient : MonoBehaviour
     private bool hasInit;
     public delegate void OnDisconnect();
     OnDisconnect onDisconnect;
+    bool hasDisconnected = false;
     public delegate void OnNetworkMessageDelegate(NetworkMessage.MessageType type, byte[] buffer, int size);
     public event OnNetworkMessageDelegate OnMessageReceived;
 
@@ -74,6 +75,7 @@ public class NetworkClient : MonoBehaviour
     {
         byte[] connectTokenBytes = Convert.FromBase64String(connectToken);
         this.onDisconnect = onDisconnect;
+        hasDisconnected = false;
         Debug.Log("connectTokenBytes: " + connectTokenBytes.Length);
         client.Connect(connectTokenBytes);
     }
@@ -98,12 +100,7 @@ public class NetworkClient : MonoBehaviour
         else if (state == ClientState.Disconnected)
         {
             reliableEndpoint = null;
-
-            if (onDisconnect != null)
-            {
-                onDisconnect = null;
-                onDisconnect();
-            }
+            hasDisconnected = true;
         }
         else
         {
@@ -150,8 +147,6 @@ public class NetworkClient : MonoBehaviour
         if (client.State != ClientState.Connected)
         {
             Debug.Log("Not sending packet, client state invalid: " + client.State.ToString());
-            if (onDisconnect != null)
-                onDisconnect();
             return;
         }
         // this will be called when a datagram is ready to be sent across the network.
@@ -189,6 +184,13 @@ public class NetworkClient : MonoBehaviour
             {
                 Debug.LogError("[NetworkClient.cs] OnMessageReceived is null. Ignoring received message");
             }
+        }
+
+        if (hasDisconnected)
+        {
+            onDisconnect();
+            onDisconnect = null;
+            hasDisconnected = false;
         }
     }
 
