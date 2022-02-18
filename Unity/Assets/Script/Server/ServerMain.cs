@@ -17,7 +17,7 @@ public class ServerMain
     );
 
     int maxClients = 2;
-    int port = 5240;
+    int port = 5241;
     int threadSleepMsBetweenUpdates = 10;
     const ulong protocolID = 1L;
     ulong tokenSequenceNumber = 1L;

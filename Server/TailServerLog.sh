@@ -1,1 +1,1 @@
-ssh gameserv@45.76.125.216 tail -n 40 ggj2020.log -f
+ssh gameserv@45.76.125.216 tail -n 40 netris.log -f

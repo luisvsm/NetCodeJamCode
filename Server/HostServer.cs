@@ -8,6 +8,7 @@ public class HostServer
 {
     //public const string HostIP = "0.0.0.0";
     public const string HostIP = "45.76.125.216";
+    public const int restServicePort = 8081;
     public static ServerMain gameServer;
 
     public static void Main(string[] args)
@@ -25,7 +26,7 @@ public class HostServer
             {
                 webBuilder.ConfigureKestrel(serverOptions =>
                 {
-                    serverOptions.Listen(IPAddress.Loopback, 8080);
+                    serverOptions.Listen(IPAddress.Loopback, restServicePort);
                 })
                 .UseStartup<GetToken>();
             });

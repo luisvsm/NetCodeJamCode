@@ -51,7 +51,7 @@ public class GameController : MonoBehaviour
         {
             NetworkClient.instance.Disconnect();
         };
-        StartCoroutine(GetConnectTokenRequest("https://melbggj2020.luisvsm.com/token"));
+        StartCoroutine(GetConnectTokenRequest("https://netris.luisvsm.com/token"));
     }
     IEnumerator GetConnectTokenRequest(string uri)
     {
